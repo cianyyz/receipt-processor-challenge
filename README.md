@@ -1,21 +1,102 @@
 # Receipt Processor
 
-Build a webservice that fulfils the documented API. The API is described below. A formal definition is provided 
-in the [api.yml](./api.yml) file. We will use the described API to test your solution.
+This is a simple receipt processor API built with Rust and Actix Web. It processes receipts according to the specified rules and calculates points.
 
-Provide any instructions required to run your application.
+## Prerequisites
 
-Data does not need to persist when your application stops. It is sufficient to store information in memory. There are too many different database solutions, we will not be installing a database on our system when testing your application.
+- Rust and Cargo
+- Docker
 
-## Language Selection
+## Running the Application
 
-You can assume our engineers have Go and Docker installed to run your application. Go is our preferred language, but choosing it will not give you an advantage in the evaluation. If you are not using Go, include a Dockerized setup to run the code. You should also provide detailed instructions if your Docker file requires any additional configuration to run the application.
+### Using Cargo
 
-## Submitting Your Solution
+1. Clone the repository
+2. Navigate to the project directory
+3. Run the application:
 
-Provide a link to a public repository, such as GitHub or BitBucket, that contains your code to the provided link through Greenhouse.
+```bash
+cargo run
+```
 
----
+The server will start on http://localhost:8080.
+
+### Using Docker
+
+1. Clone the repository
+2. Navigate to the project directory
+3. Build the Docker image:
+
+```bash
+docker build -t receipt-processor .
+```
+
+4. Run the Docker container:
+
+```bash
+docker run -p 8080:8080 receipt-processor
+```
+
+The server will be accessible at http://localhost:8080.
+
+## API Endpoints
+
+### Process Receipt
+
+- **URL**: `/receipts/process`
+- **Method**: `POST`
+- **Request Body**: Receipt JSON
+- **Response**: JSON containing an ID for the receipt
+
+Example Request:
+```json
+{
+  "retailer": "Target",
+  "purchaseDate": "2022-01-01",
+  "purchaseTime": "13:01",
+  "items": [
+    {
+      "shortDescription": "Mountain Dew 12PK",
+      "price": "6.49"
+    }
+  ],
+  "total": "6.49"
+}
+```
+
+Example Response:
+```json
+{
+  "id": "7fb1377b-b223-49d9-a31a-5a02701dd310"
+}
+```
+
+### Get Points
+
+- **URL**: `/receipts/{id}/points`
+- **Method**: `GET`
+- **Response**: JSON containing the number of points awarded
+
+Example Response:
+```json
+{
+  "points": 32
+}
+```
+
+## Points Calculation Rules
+
+The points are calculated based on the following rules:
+
+1. One point for every alphanumeric character in the retailer name.
+2. 50 points if the total is a round dollar amount with no cents.
+3. 25 points if the total is a multiple of 0.25.
+4. 5 points for every two items on the receipt.
+5. If the trimmed length of the item description is a multiple of 3, multiply the price by 0.2 and round up to the nearest integer. The result is the number of points earned.
+6. 5 points if the total is greater than 10.00.
+7. 6 points if the day in the purchase date is odd.
+8. 10 points if the time of purchase is after 2:00pm and before 4:00pm.
+
 ## Summary of API Specification
 
 ### Endpoint: Process Receipts
